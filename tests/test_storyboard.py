@@ -45,7 +45,13 @@ def test_from_dict_roundtrip(tmp_path) -> None:
         "theme": "midnight",
         "transition": 0.4,
         "scenes": [
-            {"title": "مرحبا", "subtitle": "أهلاً بكم", "duration": 2.5, "theme": "desert"},
+            {
+                "title": "مرحبا",
+                "subtitle": "أهلاً بكم",
+                "duration": 2.5,
+                "theme": "desert",
+                "narration": "نص التعليق الصوتي",
+            },
             {"title": "Bye", "duration": 2.0},
         ],
     }
@@ -53,6 +59,8 @@ def test_from_dict_roundtrip(tmp_path) -> None:
     assert board.width == 640 and board.fps == 30
     assert board.scenes[0].title == "مرحبا"
     assert board.scenes[0].theme == "desert"
+    assert board.scenes[0].narration == "نص التعليق الصوتي"
+    assert board.scenes[1].spoken_text == "Bye"
 
     path = tmp_path / "board.json"
     board.to_json_file(path)
@@ -73,6 +81,8 @@ def test_prompt_generates_one_scene_per_sentence() -> None:
     assert board.scenes[0].title == "استوديو نيرو ليفانت"
     assert board.scenes[1].title
     assert "نصنع المحتوى" in board.scenes[1].title + " " + board.scenes[1].subtitle
+    assert board.scenes[0].narration == "استوديو نيرو ليفانت."
+    assert board.scenes[2].narration == "جاهز للنشر على كل المنصات."
     assert board.metadata["prompt"] == prompt
     assert board.duration == pytest.approx(2.0 * 3 - 0.6 * 2)
 

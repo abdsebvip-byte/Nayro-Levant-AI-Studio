@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import subprocess
+from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import Callable, Iterable
 
 import imageio_ffmpeg
 
@@ -32,8 +32,12 @@ def encode_frames(
     fps: int,
     crf: int = 20,
     preset: str = "medium",
+    audio: str | Path | None = None,
 ) -> Path:
-    """Pipe raw RGB frames into ffmpeg and write an H.264 MP4 file."""
+    """Pipe raw RGB frames into ffmpeg and write an H.264 MP4 file.
+
+    When *audio* is given, the track is encoded to AAC and muxed into the MP4.
+    """
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
 
@@ -53,7 +57,17 @@ def encode_frames(
         str(fps),
         "-i",
         "pipe:0",
-        "-an",
+    ]
+    if audio is not None:
+        command += ["-i", str(audio)]
+
+    command += ["-map", "0:v:0"]
+    if audio is not None:
+        command += ["-map", "1:a:0", "-c:a", "aac", "-b:a", "160k", "-shortest"]
+    else:
+        command += ["-an"]
+
+    command += [
         "-c:v",
         "libx264",
         "-preset",
@@ -100,6 +114,7 @@ def generate_video(
     output: str | Path,
     *,
     progress: ProgressCallback | None = None,
+    audio: str | Path | None = None,
 ) -> Path:
     """Render *storyboard* and encode it to *output*; returns the output path."""
     renderer = Renderer(storyboard)
@@ -117,4 +132,5 @@ def generate_video(
         width=storyboard.width,
         height=storyboard.height,
         fps=storyboard.fps,
+        audio=audio,
     )

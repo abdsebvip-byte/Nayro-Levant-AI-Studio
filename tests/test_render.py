@@ -62,7 +62,27 @@ def test_generate_video_end_to_end(tmp_path) -> None:
     assert (info["width"], info["height"]) == (256, 144)
     assert info["fps"] == pytest.approx(10.0)
     assert info["duration"] == pytest.approx(1.6, abs=0.15)
+    assert info["has_audio"] is False
+    assert info["audio_codec"] is None
     assert progress and progress[-1] == (16, 16)
+
+
+def test_generate_video_with_audio(tmp_path) -> None:
+    from nayro_studio.audio import SAMPLE_RATE, load_audio, write_wav
+
+    time = np.arange(int(1.6 * SAMPLE_RATE), dtype=np.float32) / SAMPLE_RATE
+    tone = 0.4 * np.sin(2.0 * np.pi * 330.0 * time)
+    narration = write_wav(tone.astype(np.float32), tmp_path / "voice.wav")
+
+    output = tmp_path / "voiced.mp4"
+    generate_video(tiny_board(), output, audio=narration)
+
+    info = probe_video(output)
+    assert info["has_audio"] is True
+    assert info["audio_codec"] == "aac"
+    decoded = load_audio(output)
+    assert float(np.abs(decoded).max()) > 0.2
+    assert decoded.size / SAMPLE_RATE == pytest.approx(1.6, abs=0.2)
 
 
 def test_cli_renders_from_prompt(tmp_path, capsys) -> None:
@@ -89,6 +109,45 @@ def test_cli_renders_from_prompt(tmp_path, capsys) -> None:
     captured = capsys.readouterr().out
     assert "Video created" in captured
     assert probe_video(output)["duration"] == pytest.approx(1.2, abs=0.15)
+
+
+def test_cli_with_voiceover_and_music(tmp_path, monkeypatch) -> None:
+    import nayro_studio.voice as voice_module
+    from nayro_studio.audio import SAMPLE_RATE, load_audio, write_wav
+
+    def fake_synth(text, output, *, provider="auto", lang="ar", voice=None):
+        time = np.arange(int(0.3 * SAMPLE_RATE), dtype=np.float32) / SAMPLE_RATE
+        samples = (0.4 * np.sin(2.0 * np.pi * 440.0 * time)).astype(np.float32)
+        return write_wav(samples, f"{output}.wav")
+
+    monkeypatch.setattr(voice_module, "synthesize_speech", fake_synth)
+
+    output = tmp_path / "voiced.mp4"
+    code = main(
+        [
+            "--prompt",
+            "جملة أولى للتعليق. جملة ثانية للتعليق.",
+            "--duration",
+            "0.6",
+            "--width",
+            "256",
+            "--height",
+            "144",
+            "--fps",
+            "10",
+            "--voice",
+            "--music",
+            "--out",
+            str(output),
+            "--quiet",
+        ]
+    )
+    assert code == 0
+    info = probe_video(output)
+    assert info["has_audio"] is True
+    assert info["audio_codec"] == "aac"
+    assert info["duration"] > 1.5
+    assert float(np.abs(load_audio(output)).max()) > 0.1
 
 
 def test_cli_dry_run(tmp_path) -> None:

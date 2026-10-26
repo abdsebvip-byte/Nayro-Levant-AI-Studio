@@ -17,6 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+voice = ["edge-tts>=7.0", "gTTS>=2.5"]
 dev = ["pytest>=7.4"]
 
 [project.scripts]

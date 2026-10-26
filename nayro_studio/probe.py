@@ -10,6 +10,7 @@ from .video import ffmpeg_path
 
 _DURATION_RE = re.compile(r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)")
 _VIDEO_RE = re.compile(r"Video:\s*([\w-]+).*?,\s*(\d{2,5})x(\d{2,5})")
+_AUDIO_RE = re.compile(r"Audio:\s*([\w-]+)")
 _FPS_RE = re.compile(r"(\d+(?:\.\d+)?)\s*fps")
 
 
@@ -39,6 +40,7 @@ def probe_video(path: str | Path) -> dict[str, object]:
     hours, minutes, seconds = duration_match.groups()
     duration = int(hours) * 3600 + int(minutes) * 60 + float(seconds)
     fps_match = _FPS_RE.search(banner)
+    audio_match = _AUDIO_RE.search(banner)
 
     return {
         "codec": video_match.group(1),
@@ -46,5 +48,7 @@ def probe_video(path: str | Path) -> dict[str, object]:
         "height": int(video_match.group(3)),
         "fps": float(fps_match.group(1)) if fps_match else None,
         "duration": round(duration, 3),
+        "has_audio": audio_match is not None,
+        "audio_codec": audio_match.group(1) if audio_match else None,
         "size_bytes": path.stat().st_size,
     }

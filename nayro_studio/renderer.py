@@ -248,7 +248,7 @@ class Renderer:
 
     @property
     def frame_count(self) -> int:
-        return max(1, int(round(self.total_duration * self.fps)))
+        return max(1, round(self.total_duration * self.fps))
 
     def frames(self):
         """Yield every frame as raw RGB bytes, ready for the encoder."""

@@ -43,7 +43,7 @@ def is_rtl(text: str) -> bool:
 
 def wrap_text(
     text: str,
-    font: "ImageFont.FreeTypeFont",
+    font: ImageFont.FreeTypeFont,
     max_width: int,
     max_lines: int = 3,
 ) -> list[str]:

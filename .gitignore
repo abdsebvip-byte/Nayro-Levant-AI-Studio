@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+output/.nayro-audio-*/
 *.egg-info/
 build/
 dist/

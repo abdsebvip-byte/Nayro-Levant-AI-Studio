@@ -23,14 +23,21 @@ class Scene:
     subtitle: str = ""
     duration: float = 3.0
     theme: str | None = None
+    narration: str = ""
 
     def __post_init__(self) -> None:
         self.title = " ".join(str(self.title).split())
         self.subtitle = " ".join(str(self.subtitle).split())
-        if not self.title and not self.subtitle:
-            raise ValueError("a scene needs a title or a subtitle")
+        self.narration = " ".join(str(self.narration).split())
+        if not self.title and not self.subtitle and not self.narration:
+            raise ValueError("a scene needs a title, a subtitle or narration")
         if self.duration <= 0:
             raise ValueError("scene duration must be positive")
+
+    @property
+    def spoken_text(self) -> str:
+        """Text used for the voiceover: explicit narration, else on-screen copy."""
+        return self.narration or " ".join(filter(None, [self.title, self.subtitle]))
 
     def to_dict(self) -> dict[str, Any]:
         data: dict[str, Any] = {"title": self.title, "duration": self.duration}
@@ -38,6 +45,8 @@ class Scene:
             data["subtitle"] = self.subtitle
         if self.theme:
             data["theme"] = self.theme
+        if self.narration:
+            data["narration"] = self.narration
         return data
 
 
@@ -72,10 +81,10 @@ class Storyboard:
 
     @property
     def frame_count(self) -> int:
-        return max(1, int(round(self.duration * self.fps)))
+        return max(1, round(self.duration * self.fps))
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Storyboard":
+    def from_dict(cls, data: dict[str, Any]) -> Storyboard:
         if not isinstance(data, dict):
             raise TypeError("storyboard JSON must be an object")
         scenes_data = data.get("scenes")
@@ -87,6 +96,7 @@ class Storyboard:
                 subtitle=item.get("subtitle", ""),
                 duration=float(item.get("duration", 3.0)),
                 theme=item.get("theme"),
+                narration=item.get("narration", ""),
             )
             for item in scenes_data
         ]
@@ -102,7 +112,7 @@ class Storyboard:
         )
 
     @classmethod
-    def from_json_file(cls, path: str | Path) -> "Storyboard":
+    def from_json_file(cls, path: str | Path) -> Storyboard:
         return cls.from_dict(json.loads(Path(path).read_text(encoding="utf-8")))
 
     def to_dict(self) -> dict[str, Any]:
@@ -173,22 +183,37 @@ def storyboard_from_prompt(
 
     sentences = _split_sentences(prompt) or [prompt]
     if len(sentences) == 1:
-        scenes = [Scene(title=prompt, duration=scene_duration)]
+        scenes = [Scene(title=prompt, narration=prompt, duration=scene_duration)]
     else:
         title, remainder = _split_headline(sentences[0], max_words=10, max_chars=70)
-        scenes = [Scene(title=title, subtitle=remainder, duration=scene_duration)]
+        scenes = [
+            Scene(
+                title=title,
+                subtitle=remainder,
+                narration=sentences[0],
+                duration=scene_duration,
+            )
+        ]
         if max_scenes == 1:
             # With a single card the full first sentence stays visible.
             title = sentences[0].rstrip(".,،;؛:!?؟…")
-            scenes[0] = Scene(title=title, duration=scene_duration)
+            scenes[0] = Scene(title=title, narration=sentences[0], duration=scene_duration)
         for sentence in sentences[1:max_scenes]:
             headline, remainder = _split_headline(sentence)
-            scenes.append(Scene(title=headline, subtitle=remainder, duration=scene_duration))
+            scenes.append(
+                Scene(
+                    title=headline,
+                    subtitle=remainder,
+                    narration=sentence,
+                    duration=scene_duration,
+                )
+            )
 
     if len(sentences) > max_scenes:
-        # Keep the overflow visible instead of silently dropping content.
+        # Keep the overflow visible and spoken instead of dropping content.
         overflow = " ".join(sentences[max_scenes:])
         scenes[-1].subtitle = " ".join(filter(None, [scenes[-1].subtitle, overflow]))
+        scenes[-1].narration = " ".join(filter(None, [scenes[-1].narration, overflow]))
 
     return Storyboard(
         scenes=scenes,
