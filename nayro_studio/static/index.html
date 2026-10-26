@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>استوديو نيرو ليفانت — توليد فيديو من المحادثة</title>
+<style>
+  :root {
+    --accent: #35E0C4;
+    --accent-2: #4C7DFF;
+    --bg: #050b12;
+    --card: rgba(255, 255, 255, 0.045);
+    --line: rgba(255, 255, 255, 0.09);
+    --text: #eef2f8;
+    --muted: #98a4ba;
+    --danger: #ff8f8f;
+  }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, "Noto Kufi Arabic", "Arial", sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    background-image:
+      radial-gradient(900px 500px at 85% -10%, rgba(53, 224, 196, 0.16), transparent 60%),
+      radial-gradient(800px 540px at 5% 20%, rgba(76, 125, 255, 0.14), transparent 60%),
+      radial-gradient(700px 700px at 50% 120%, rgba(139, 92, 246, 0.10), transparent 65%);
+    background-attachment: fixed;
+    line-height: 1.7;
+  }
+  .top {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 26px 20px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .logo {
+    width: 48px; height: 48px; border-radius: 14px;
+    display: grid; place-items: center;
+    font-size: 24px; font-weight: 800; color: #04110f;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 10px 30px rgba(53, 224, 196, 0.25);
+  }
+  h1 { font-size: 20px; margin: 0; letter-spacing: 0.2px; }
+  .brand p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+  .badge {
+    font-size: 12px; color: var(--accent);
+    border: 1px solid rgba(53, 224, 196, 0.35);
+    background: rgba(53, 224, 196, 0.07);
+    padding: 6px 12px; border-radius: 999px; white-space: nowrap;
+  }
+  main {
+    max-width: 1040px; margin: 0 auto;
+    padding: 12px 20px 50px;
+    display: grid; gap: 18px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 22px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+  }
+  .composer-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  h2 { font-size: 16px; margin: 0 0 12px; }
+  .count { color: var(--muted); font-size: 12px; }
+  textarea {
+    width: 100%; min-height: 132px; resize: vertical;
+    margin-top: 4px; padding: 15px 16px;
+    color: var(--text); font: inherit; font-size: 16px; line-height: 1.9;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid var(--line); border-radius: 14px;
+    outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  textarea:focus {
+    border-color: rgba(53, 224, 196, 0.55);
+    box-shadow: 0 0 0 4px rgba(53, 224, 196, 0.08);
+  }
+  textarea::placeholder { color: #6d7890; }
+  .examples { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 2px 16px; }
+  .examples span { color: var(--muted); font-size: 12px; }
+  .examples button {
+    font: inherit; font-size: 12.5px; color: var(--text);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: 5px 12px; cursor: pointer; transition: border-color 0.2s, color 0.2s;
+  }
+  .examples button:hover { border-color: var(--accent); color: var(--accent); }
+  .grid {
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  }
+  .grid label { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; color: var(--muted); }
+  select {
+    font: inherit; font-size: 14px; color: var(--text);
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 9px 10px; outline: none;
+  }
+  select:focus { border-color: rgba(53, 224, 196, 0.5); }
+  input[type="range"] { accent-color: var(--accent); width: 100%; }
+  output { color: var(--accent); font-size: 12px; }
+  .toggles { display: flex; gap: 20px; flex-wrap: wrap; margin: 16px 2px 18px; }
+  .switch { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; user-select: none; }
+  .switch input { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; }
+  .generate {
+    width: 100%; border: 0; cursor: pointer;
+    padding: 15px 18px; border-radius: 14px;
+    font: inherit; font-size: 17px; font-weight: 800; color: #04110f;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 12px 34px rgba(53, 224, 196, 0.22);
+    transition: transform 0.15s, filter 0.2s, opacity 0.2s;
+  }
+  .generate:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.05); }
+  .generate:disabled { opacity: 0.55; cursor: progress; transform: none; }
+  .hint { margin: 12px 2px 0; color: var(--muted); font-size: 12px; }
+  .chat { padding-bottom: 14px; }
+  .chat-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .chat-head h2 { margin: 0; }
+  .live {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 12px var(--accent);
+    margin-inline-start: auto;
+  }
+  .chat-head small { color: var(--muted); font-size: 11px; }
+  .feed { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; max-height: 620px; overflow-y: auto; padding-inline-end: 4px; }
+  .msg { display: flex; gap: 10px; align-items: flex-start; }
+  .msg.user { flex-direction: row-reverse; }
+  .avatar {
+    flex: 0 0 34px; width: 34px; height: 34px; border-radius: 11px;
+    display: grid; place-items: center; font-size: 14px; font-weight: 800;
+    background: rgba(255, 255, 255, 0.07); border: 1px solid var(--line); color: var(--accent);
+  }
+  .msg.user .avatar { color: #04110f; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: 0; }
+  .bubble {
+    max-width: 86%; padding: 13px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--line);
+    border-radius: 16px; border-start-start-radius: 5px;
+  }
+  .msg.user .bubble {
+    background: linear-gradient(135deg, rgba(53, 224, 196, 0.16), rgba(76, 125, 255, 0.16));
+    border-color: rgba(53, 224, 196, 0.22);
+    border-start-start-radius: 16px; border-start-end-radius: 5px;
+  }
+  .bubble p { margin: 0 0 6px; }
+  .bubble p:last-child { margin-bottom: 0; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .working { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .spinner {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid rgba(53, 224, 196, 0.25);
+    border-top-color: var(--accent);
+    animation: spin 0.8s linear infinite;
+    flex: 0 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .track { height: 8px; margin-top: 12px; border-radius: 99px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+  .fill { height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width 0.3s ease; }
+  video { width: 100%; max-height: 430px; margin-top: 12px; border-radius: 12px; background: #000; display: block; }
+  .result-head { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--accent); }
+  .ok-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+  .result-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+  .download {
+    display: inline-block; padding: 9px 16px; border-radius: 10px;
+    color: #04110f; text-decoration: none; font-weight: 800; font-size: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  }
+  .meta { color: var(--muted); font-size: 12px; }
+  .error {
+    color: var(--danger); background: rgba(255, 90, 90, 0.08);
+    border: 1px solid rgba(255, 90, 90, 0.25);
+    padding: 10px 12px; border-radius: 10px; font-size: 13.5px;
+  }
+  footer { text-align: center; color: #66718a; font-size: 12px; padding: 0 20px 30px; }
+  @media (max-width: 560px) {
+    .top { padding-top: 18px; }
+    .card { padding: 17px; border-radius: 16px; }
+    .bubble { max-width: 90%; }
+    .badge { display: none; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="logo">ن</div>
+    <div>
+      <h1>استوديو نيرو ليفانت</h1>
+      <p>ولّد فيديو كاملاً بالسكربت والصوت — من المحادثة مباشرة</p>
+    </div>
+  </div>
+  <span class="badge">محلي • بدون أوامر</span>
+</header>
+
+<main>
+  <section class="card">
+    <form id="composer" autocomplete="off">
+      <div class="composer-head">
+        <h2>اكتب سكربت الفيديو</h2>
+        <span id="count" class="count">0 / 4000</span>
+      </div>
+      <textarea id="script" maxlength="4000" placeholder="اكتب هنا... كل جملة تتحول إلى مشهد تلقائياً.&#10;مثال: مرحباً بكم في استوديو نيرو ليفانت. نحوّل أفكارك إلى فيديو متكامل بالصوت والصورة. جاهز للنشر على كل المنصات."></textarea>
+
+      <div class="examples">
+        <span>أمثلة سريعة:</span>
+        <button type="button" data-example="intro">فيديو تعريفي</button>
+        <button type="button" data-example="product">إعلان منتج</button>
+        <button type="button" data-example="greeting">تهنئة</button>
+      </div>
+
+      <div class="grid">
+        <label>المقاس
+          <select id="size">
+            <option value="landscape" selected>أفقي 16:9 — 1280×720</option>
+            <option value="vertical">عمودي 9:16 — 720×1280</option>
+            <option value="square">مربع — 900×900</option>
+          </select>
+        </label>
+        <label>السمة
+          <select id="theme">
+            <option value="aurora" selected>أورورا — فيروزي</option>
+            <option value="midnight">منتصف الليل — بنفسجي</option>
+            <option value="sunrise">شروق — برتقالي</option>
+            <option value="desert">صحراء — ذهبي</option>
+          </select>
+        </label>
+        <label>لغة التعليق
+          <select id="lang">
+            <option value="ar" selected>العربية</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <label>مدة المشهد <output id="durationOut">3.0 ث</output>
+          <input id="duration" type="range" min="1" max="6" step="0.5" value="3">
+        </label>
+        <label>عدد المشاهد
+          <select id="scenes">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4" selected>4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="8">8</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="toggles">
+        <label class="switch"><input id="voice" type="checkbox" checked><span>تعليق صوتي</span></label>
+        <label class="switch"><input id="music" type="checkbox" checked><span>موسيقى خلفية</span></label>
+      </div>
+
+      <button class="generate" type="submit">أنشئ الفيديو الآن</button>
+      <p class="hint">التعليق الصوتي يستخدم أصواتاً عربية طبيعية ويحتاج اتصالاً بالإنترنت. الموسيقى تُولَّد محلياً.</p>
+    </form>
+  </section>
+
+  <section class="card chat">
+    <div class="chat-head">
+      <h2>المحادثة</h2>
+      <span class="live" title="الخادم يعمل"></span>
+      <small>جاهز</small>
+    </div>
+    <div id="feed" class="feed">
+      <div class="msg bot">
+        <div class="avatar">ن</div>
+        <div class="bubble">
+          <p>أهلاً بك 👋 اكتب سكربت الفيديو أعلاه واضغط «أنشئ الفيديو الآن».</p>
+          <p class="muted">سأقسّم النص إلى مشاهد، أضيف التعليق الصوتي والموسيقى، وأعطيك ملف MP4 جاهزاً للتحميل — كل ذلك من هذه الصفحة وبدون أي أوامر.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>استوديو نيرو ليفانت · يعمل محلياً على جهازك · لا تُرسل ملفاتك إلى أي خدمة تخزين</footer>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = (selector) => document.querySelector(selector);
+  const feed = $("#feed");
+  const form = $("#composer");
+  const scriptEl = $("#script");
+  const countEl = $("#count");
+  const submitBtn = form.querySelector("button[type=submit]");
+  const durationEl = $("#duration");
+  const durationOut = $("#durationOut");
+  const themeEl = $("#theme");
+
+  const examples = {
+    intro: "استوديو نيرو ليفانت للذكاء الاصطناعي. نحوّل أفكارك إلى فيديو متكامل بالصوت والصورة. جاهز للنشر على كل المنصات.",
+    product: "منتج جديد بأداء استثنائي. تصميم أنيق يناسب يومك. اطلبه الآن قبل نفاد الكمية.",
+    greeting: "كل عام وأنتم بخير. نتمنى لكم عاماً مليئاً بالنجاح والازدهار. من استوديو نيرو ليفانت."
+  };
+
+  const themeColors = {
+    aurora: ["#35E0C4", "#4C7DFF"],
+    midnight: ["#8B5CF6", "#F472B6"],
+    sunrise: ["#FF9A5A", "#FFD166"],
+    desert: ["#E2B15B", "#C97B4A"]
+  };
+
+  const updateCount = () => {
+    countEl.textContent = `${scriptEl.value.trim().length} / 4000`;
+  };
+  updateCount();
+
+  const applyTheme = () => {
+    const pair = themeColors[themeEl.value] || themeColors.aurora;
+    document.documentElement.style.setProperty("--accent", pair[0]);
+    document.documentElement.style.setProperty("--accent-2", pair[1]);
+  };
+
+  const updateDuration = () => {
+    durationOut.textContent = `${Number(durationEl.value).toFixed(1)} ث`;
+  };
+  updateDuration();
+
+  scriptEl.addEventListener("input", updateCount);
+  durationEl.addEventListener("input", updateDuration);
+  themeEl.addEventListener("change", applyTheme);
+
+  document.querySelectorAll("[data-example]").forEach((button) => {
+    button.addEventListener("click", () => {
+      scriptEl.value = examples[button.dataset.example] || "";
+      updateCount();
+      scriptEl.focus();
+    });
+  });
+
+  const scrollFeed = () => {
+    feed.scrollTop = feed.scrollHeight;
+  };
+
+  const addMessage = (role, html) => {
+    const wrap = document.createElement("div");
+    wrap.className = `msg ${role}`;
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = role === "user" ? "أ" : "ن";
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.innerHTML = html;
+    wrap.append(avatar, bubble);
+    feed.appendChild(wrap);
+    scrollFeed();
+    return bubble;
+  };
+
+  const escapeHtml = (text) => {
+    const holder = document.createElement("div");
+    holder.textContent = text;
+    return holder.innerHTML.replace(/\n/g, "<br>");
+  };
+
+  const showError = (bubble, message) => {
+    bubble.innerHTML = `<div class="error">${escapeHtml(message)}</div>`;
+    scrollFeed();
+  };
+
+  const renderResult = (bubble, job) => {
+    const info = job.info || {};
+    const meta = [];
+    if (info.width) meta.push(`${info.width}×${info.height}`);
+    if (info.duration) meta.push(`${Number(info.duration).toFixed(1)} ث`);
+    if (info.size_bytes) meta.push(`${(info.size_bytes / 1048576).toFixed(1)} م.ب`);
+    bubble.innerHTML = `
+      <div class="result-head"><span class="ok-dot"></span> تم إنشاء الفيديو</div>
+      <video src="${job.video_url}" controls playsinline preload="metadata"></video>
+      <div class="result-actions">
+        <a class="download" href="${job.video_url}" download="nayro-video.mp4">تحميل MP4</a>
+        <span class="meta">${meta.join(" · ")}</span>
+      </div>`;
+    scrollFeed();
+    const video = bubble.querySelector("video");
+    if (video) video.play().catch(() => {});
+  };
+
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const watchJob = async (id, bubble) => {
+    const stageEl = bubble.querySelector(".stage");
+    const fillEl = bubble.querySelector(".fill");
+    for (let attempt = 0; attempt < 900; attempt += 1) {
+      const response = await fetch(`/api/jobs/${id}`, { headers: { Accept: "application/json" } });
+      const job = await response.json();
+      if (!response.ok) throw new Error(job.error || "تعذّر متابعة المهمة");
+      if (stageEl) stageEl.textContent = job.total ? `${job.stage} · ${job.percent}%` : job.stage;
+      if (fillEl) fillEl.style.width = `${job.percent}%`;
+      if (job.status === "done") {
+        renderResult(bubble, job);
+        return;
+      }
+      if (job.status === "error") {
+        showError(bubble, job.error || "فشل توليد الفيديو");
+        return;
+      }
+      await wait(900);
+    }
+    throw new Error("استغرق التوليد وقتاً أطول من المتوقع. حاول مرة أخرى.");
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const script = scriptEl.value.trim();
+    if (!script) {
+      scriptEl.focus();
+      return;
+    }
+
+    const payload = {
+      script,
+      size: $("#size").value,
+      theme: $("#theme").value,
+      lang: $("#lang").value,
+      duration: Number(durationEl.value),
+      max_scenes: Number($("#scenes").value),
+      voice: $("#voice").checked,
+      music: $("#music").checked
+    };
+
+    addMessage("user", escapeHtml(script));
+    const bubble = addMessage(
+      "bot",
+      `<div class="working"><span class="spinner"></span><span class="stage">جارٍ تجهيز المشاهد…</span></div>
+       <div class="track"><div class="fill"></div></div>`
+    );
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "جارٍ التوليد…";
+    try {
+      const response = await fetch("/api/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "تعذّر بدء التوليد");
+      await watchJob(data.id, bubble);
+    } catch (error) {
+      showError(bubble, error.message || "حدث خطأ غير متوقع");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "أنشئ الفيديو الآن";
+    }
+  });
+
+  fetch("/healthz").catch(() => {
+    addMessage(
+      "bot",
+      `<div class="error">تعذّر الاتصال بالخادم المحلي. تأكد من أن نافذة التشغيل ما زالت مفتوحة.</div>`
+    );
+  });
+})();
+</script>
+</body>
+</html>
