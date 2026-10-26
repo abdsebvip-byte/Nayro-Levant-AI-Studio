@@ -1,0 +1,34 @@
+{
+  "brand": "NAYRO LEVANT · AI STUDIO",
+  "width": 1280,
+  "height": 720,
+  "fps": 24,
+  "theme": "aurora",
+  "transition": 0.6,
+  "scenes": [
+    {
+      "title": "استوديو نيرو ليفانت",
+      "subtitle": "نصنع المحتوى بالذكاء الاصطناعي",
+      "duration": 3.2,
+      "theme": "aurora"
+    },
+    {
+      "title": "من الفكرة إلى الفيديو",
+      "subtitle": "اكتب وصفاً قصيراً، ودع الاستوديو يتولى الباقي",
+      "duration": 3.2,
+      "theme": "midnight"
+    },
+    {
+      "title": "هوية بصرية متكاملة",
+      "subtitle": "خطوط عربية واضحة، ألوان متناسقة، وانتقالات ناعمة",
+      "duration": 3.2,
+      "theme": "sunrise"
+    },
+    {
+      "title": "جاهز للنشر",
+      "subtitle": "ملف MP4 بجودة عالية يناسب كل المنصات",
+      "duration": 3.2,
+      "theme": "desert"
+    }
+  ]
+}
