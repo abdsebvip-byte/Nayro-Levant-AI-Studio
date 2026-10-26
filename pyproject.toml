@@ -18,16 +18,18 @@ dependencies = [
 
 [project.optional-dependencies]
 voice = ["edge-tts>=7.0", "gTTS>=2.5"]
+web = ["flask>=3.0"]
 dev = ["pytest>=7.4"]
 
 [project.scripts]
 nayro-video = "nayro_studio.cli:main"
+nayro-web = "nayro_studio.web:main"
 
 [tool.setuptools.packages.find]
 include = ["nayro_studio*"]
 
 [tool.setuptools.package-data]
-nayro_studio = ["assets/fonts/*.ttf"]
+nayro_studio = ["assets/fonts/*.ttf", "static/*.html"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
