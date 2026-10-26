@@ -172,20 +172,22 @@ def storyboard_from_prompt(
         raise ValueError("max_scenes must be at least 1")
 
     sentences = _split_sentences(prompt) or [prompt]
-    title, _ = _split_headline(sentences[0], max_words=10, max_chars=70)
-    scenes = [Scene(title=title, duration=scene_duration)]
-
-    for sentence in sentences[1:max_scenes]:
-        headline, remainder = _split_headline(sentence)
-        scenes.append(Scene(title=headline, subtitle=remainder, duration=scene_duration))
-
-    if len(scenes) == 1:
-        # Keep the full prompt readable on a single card.
-        scenes[0] = Scene(title=prompt, duration=scene_duration)
+    if len(sentences) == 1:
+        scenes = [Scene(title=prompt, duration=scene_duration)]
+    else:
+        title, remainder = _split_headline(sentences[0], max_words=10, max_chars=70)
+        scenes = [Scene(title=title, subtitle=remainder, duration=scene_duration)]
+        if max_scenes == 1:
+            # With a single card the full first sentence stays visible.
+            title = sentences[0].rstrip(".,،;؛:!?؟…")
+            scenes[0] = Scene(title=title, duration=scene_duration)
+        for sentence in sentences[1:max_scenes]:
+            headline, remainder = _split_headline(sentence)
+            scenes.append(Scene(title=headline, subtitle=remainder, duration=scene_duration))
 
     if len(sentences) > max_scenes:
-        # Make the truncation explicit instead of silently dropping content.
-        overflow = " ".join(sentences[max_scenes - 1:])
+        # Keep the overflow visible instead of silently dropping content.
+        overflow = " ".join(sentences[max_scenes:])
         scenes[-1].subtitle = " ".join(filter(None, [scenes[-1].subtitle, overflow]))
 
     return Storyboard(

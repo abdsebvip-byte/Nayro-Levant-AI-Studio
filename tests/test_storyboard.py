@@ -90,6 +90,16 @@ def test_prompt_respects_max_scenes_and_keeps_overflow() -> None:
     assert len(board.scenes) == 3
     assert "رابعاً" in board.scenes[-1].subtitle
     assert "خامساً" in board.scenes[-1].subtitle
+    assert "ثالثاً" not in board.scenes[-1].subtitle
+
+
+def test_prompt_single_scene_keeps_all_sentences() -> None:
+    prompt = "أولاً. ثانياً. ثالثاً."
+    board = storyboard_from_prompt(prompt, max_scenes=1, scene_duration=1.0)
+    assert len(board.scenes) == 1
+    assert board.scenes[0].title == "أولاً"
+    assert "ثانياً" in board.scenes[0].subtitle
+    assert "ثالثاً" in board.scenes[0].subtitle
 
 
 def test_prompt_requires_text() -> None:
